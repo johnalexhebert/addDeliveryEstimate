@@ -50,20 +50,49 @@
 })(this);
     
 function getDeliveryDate(timeInTransit) {
-    let currentDate = new Date();
-    let deliveryDate = new Date(currentDate);
-    // add the time in transit
-    deliveryDate.setDate(currentDate.getDate() + timeInTransit);
-    // determine the day of the estimated delivery date
-    let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    let deliveryDateDayIndex = deliveryDate.getDay();
-    let deliveryDateDay = daysOfWeek[deliveryDateDayIndex];
-    // determine the month of the estimated delivery date
-    let monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    let deliveryDateMonthIndex = deliveryDate.getMonth()
-    let deliveryDateMonth = monthsOfYear[deliveryDateMonthIndex];
+
+  let currentDate = new Date();
+  let utcHours = currentDate.getUTCHours();
+  let utcMinutes = currentDate.getUTCMinutes();
+
+  // cutoff for order placement is 14:00 hours US Central
+  // warehouse pickup time is 15:00 hours US Central
+  // UTC is 5 hours ahead
+  let orderCutoffTime = 19;
+
+  console.log("UTC time is " + utcHours + ":" + utcMinutes);
+
+  if (utcHours => orderCutoffTime) {
+    // after 2pm US Central
+    // too late to fill order
+    timeInTransit = timeInTransit + 1;
+  }
+
+  let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let currentDateDayIndex = currentDate.getDay();
+  let currentDateDay = daysOfWeek[currentDateDayIndex];
     
-    return "Arrives by " + deliveryDateDay + ", " + deliveryDateMonth + " " + deliveryDate.getDate();
+  if (currentDateDay == "Saturday") {
+        timeInTransit = timeInTransit + 2;
+  } else if (currentDateDay == "Sunday") {
+        timeInTransit = timeInTransit + 1;
+  }
+
+  console.log("timeInTransit is " + timeInTransit);
+
+  let deliveryDate = new Date(currentDate);
+      
+  // add the time in transit
+  deliveryDate.setDate(currentDate.getDate() + timeInTransit);
+  
+  let deliveryDateDayIndex = deliveryDate.getDay();
+  let deliveryDateDay = daysOfWeek[deliveryDateDayIndex];
+  // determine the month of the estimated delivery date
+  let monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  let deliveryDateMonthIndex = deliveryDate.getMonth()
+  let deliveryDateMonth = monthsOfYear[deliveryDateMonthIndex];
+  
+  return "Arrives by " + deliveryDateDay + ", " + deliveryDateMonth + " " + deliveryDate.getDate();
 }
     
 ready('#checkout-shipping-options', function(element) {
